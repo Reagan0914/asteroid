@@ -9,7 +9,7 @@ import numpy as np
 
 from numpy import *
 
-from poliastro.twobody import Orbit
+from poliastro.twobody import Orbit, classical
 from poliastro.bodies import Earth, Sun
 from poliastro.neos import neows
 from poliastro.plotting import OrbitPlotter
@@ -92,21 +92,26 @@ def equatorialtoEcliptic(equatorial):
 """
 INPUTS
 """
-# Magellan Actual Data
-ra1 = 21.0860621256 * 15 * pi / 180  # Converted to radians
-dec1 = 42.6892965803 * pi / 180  # CTR
-t1 = 2457214.77398  # UTC
-R1 = [-3.218708204414991e-1, 8.848107300339854e-1, 3.835352647148005e-1]    # AU
-ra2 = 21.3088015324 * 15 * pi / 180   # CTR
-dec2 = 42.3497109416 * pi / 180  # CTR
-t2 = 2457222.72221  # UTC
-R2 = [-4.461607611676266e-1, 8.378046764336329e-1, 3.631581131854903e-1]    # AU
-ra3 = 21.5087445404 * 15 * pi / 180   # CTR
-dec3 = 41.0214401348 * pi / 180  # CTR
-t3 = 2457229.69226  # UTC
-R3 = [-5.486451104797730e-1, 7.842534442236965e-1, 3.399473955916565e-1]    # AU
+# 2018 EZ2 Actual Data
+ra1 = (8 + 44/60 + 55.96/3600) * pi / 180  # Converted to radians
+dec1 = (-7 + 24/60 + 39.8/3600) * pi / 180  # CTR
+t1 = 2.458189920830000e+06 # 2018 03 12.42083  # UTC
+# R1 = [0.932833, -0.134374, -0.058255]    # AU
+ra2 = (8 + 44/60 + 56.33) * pi / 180   # CTR
+dec2 = (-7 + 25/60 + 3.7/3600) * pi / 180  # CTR
+t2 = 2.458189922220000e+06 # 2018 03 12.42222  # UTC
+# R2 = [0.982837, -0.134352, -0.058245]    # AU
+ra3 = (8 + 46/60 + 0.86/3600) * pi / 180   # CTR
+dec3 = (-8 + 30/60 + 51.6/3600) * pi / 180  # CTR
+t3 = 2.458190129060000e+06 # 2018 03 12.62906  # UTC
+# R3 = [0.983414, -0.131109, -0.056840]    # AU
 
-
+R1 = Orbit.from_body_ephem(Earth,epoch=time.Time(t1,format='jd',scale='tdb')).to_vectors()
+R2 = Orbit.from_body_ephem(Earth,epoch=time.Time(t2,format='jd',scale='tdb')).to_vectors()
+R3 = Orbit.from_body_ephem(Earth,epoch=time.Time(t3,format='jd',scale='tdb')).to_vectors()
+print(R1.rv())
+print(R2.rv())
+print(R3.rv())
 """
 INITIAL GUESSES
 """
@@ -472,29 +477,29 @@ aPerihelion = argPerihelion(U, v)
 M = meanAnomaly(r, a, e, v)
 
 
-# Do percent differences with JPL values
-# NOTE omega = aPerihelion
-aJPL = 1.820221560664795
-eJPL = 0.3264825227417676
-iJPL = 23.25678573253114
-lOmegaJPL = 164.85231665456
-omegaJPL = 154.3654325836887
-MJPL = 3.517493888576719e2
+# # Do percent differences with JPL values
+# # NOTE omega = aPerihelion
+# aJPL = 1.820221560664795
+# eJPL = 0.3264825227417676
+# iJPL = 23.25678573253114
+# lOmegaJPL = 164.85231665456
+# omegaJPL = 154.3654325836887
+# MJPL = 3.517493888576719e2
 
 
-# Percent difference calculator
-def perDiff(var1, var2):
-    diff = abs(var1 - var2) / ((var1 + var2) / 2) * 100
-    return diff
+# # Percent difference calculator
+# def perDiff(var1, var2):
+#     diff = abs(var1 - var2) / ((var1 + var2) / 2) * 100
+#     return diff
 
-print ("################################################################")
-print ("Percent Differences (as compared to JPL values)")
-print ("a: " + str(perDiff(a, aJPL)) + "%")
-print ("e: " + str(perDiff(e, eJPL)) + "%")
-print ("i: " + str(perDiff(i, iJPL)) + "%")
-print ("Lon ascending node: " + str(perDiff(lOmega[0], lOmegaJPL)) + "%")
-print ("Perihelion: " + str(perDiff(aPerihelion, omegaJPL)) + "%")
-print ("M: " + str(perDiff(M, MJPL)) + "%")
+# print ("################################################################")
+# print ("Percent Differences (as compared to JPL values)")
+# print ("a: " + str(perDiff(a, aJPL)) + "%")
+# print ("e: " + str(perDiff(e, eJPL)) + "%")
+# print ("i: " + str(perDiff(i, iJPL)) + "%")
+# print ("Lon ascending node: " + str(perDiff(lOmega[0], lOmegaJPL)) + "%")
+# print ("Perihelion: " + str(perDiff(aPerihelion, omegaJPL)) + "%")
+# print ("M: " + str(perDiff(M, MJPL)) + "%")
 
 a = a * units.AU
 ecc = e * units.one
@@ -506,13 +511,13 @@ epoch = time.Time(t2,format='jd',scale='utc')
 
 earth_orbit = Orbit.from_body_ephem(Earth)
 earth_orbit = earth_orbit.propagate(time.Time(t2,format='jd',scale='tdb'),rtol=1e-10)
-magellan_orbit = neows.orbit_from_name('magellan')
+magellan_orbit = neows.orbit_from_name('2018ez2')
 magellan_orbit = magellan_orbit.propagate(time.Time(t2,format='jd',scale='tdb'),rtol=1e-10)
 estimated_orbit = Orbit.from_classical(Sun, a, ecc, inc, raan, argp, nu, epoch)
 
 op = OrbitPlotter()
 op.plot(earth_orbit, label='Earth')
-op.plot(magellan_orbit, label='Magellan')
+op.plot(magellan_orbit, label='2018 EZ2')
 op.plot(estimated_orbit, label='Estimated')
 
 plt.show()
