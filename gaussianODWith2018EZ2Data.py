@@ -15,11 +15,18 @@ from poliastro.neos import neows
 from poliastro.plotting import OrbitPlotter
 from astropy import units, time
 
+# download higher precision ephemerides
+from astropy.coordinates import solar_system_ephemeris
+solar_system_ephemeris.set("jpl")
+
+from jplephem.spk import SPK
+kernel = SPK.open('C:\\Users\\user\\Downloads\\de430.bsp')
+
 # Constants
 k = 0.017202099  # AU^(3/2)/solar day
 c = 173.1446    # AU/day
 r = 6371        # This is in km - convert to AU later
-
+km2au = 1/149597870700e-3 #  km/au
 
 def toDecimal(sexagismal):
     # Convert RA and Dec to decimal hours and degrees if in sexagismal
@@ -96,22 +103,18 @@ INPUTS
 ra1 = (8 + 44/60 + 55.96/3600) * pi / 180  # Converted to radians
 dec1 = (-7 + 24/60 + 39.8/3600) * pi / 180  # CTR
 t1 = 2.458189920830000e+06 # 2018 03 12.42083  # UTC
-# R1 = [0.932833, -0.134374, -0.058255]    # AU
 ra2 = (8 + 44/60 + 56.33) * pi / 180   # CTR
 dec2 = (-7 + 25/60 + 3.7/3600) * pi / 180  # CTR
 t2 = 2.458189922220000e+06 # 2018 03 12.42222  # UTC
-# R2 = [0.982837, -0.134352, -0.058245]    # AU
 ra3 = (8 + 46/60 + 0.86/3600) * pi / 180   # CTR
 dec3 = (-8 + 30/60 + 51.6/3600) * pi / 180  # CTR
 t3 = 2.458190129060000e+06 # 2018 03 12.62906  # UTC
-# R3 = [0.983414, -0.131109, -0.056840]    # AU
 
-R1 = Orbit.from_body_ephem(Earth,epoch=time.Time(t1,format='jd',scale='tdb')).to_vectors()
-R2 = Orbit.from_body_ephem(Earth,epoch=time.Time(t2,format='jd',scale='tdb')).to_vectors()
-R3 = Orbit.from_body_ephem(Earth,epoch=time.Time(t3,format='jd',scale='tdb')).to_vectors()
-print(R1.rv())
-print(R2.rv())
-print(R3.rv())
+# Get Earth positions in J2000 (DE430)
+R1 = kernel[0,3].compute(t1) * km2au
+R2 = kernel[0,3].compute(t2) * km2au
+R3 = kernel[0,3].compute(t3) * km2au
+
 """
 INITIAL GUESSES
 """

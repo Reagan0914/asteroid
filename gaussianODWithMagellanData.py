@@ -15,11 +15,18 @@ from poliastro.neos import neows
 from poliastro.plotting import OrbitPlotter
 from astropy import units, time
 
+# download higher precision ephemerides
+from astropy.coordinates import solar_system_ephemeris
+solar_system_ephemeris.set("jpl")
+
+from jplephem.spk import SPK
+kernel = SPK.open('C:\\Users\\user\\Downloads\\de430.bsp')
+
 # Constants
 k = 0.017202099  # AU^(3/2)/solar day
 c = 173.1446    # AU/day
 r = 6371        # This is in km - convert to AU later
-
+km2au = 1/149597870700e-3 #  km/au
 
 def toDecimal(sexagismal):
     # Convert RA and Dec to decimal hours and degrees if in sexagismal
@@ -106,6 +113,10 @@ dec3 = 41.0214401348 * pi / 180  # CTR
 t3 = 2457229.69226  # UTC
 R3 = [-5.486451104797730e-1, 7.842534442236965e-1, 3.399473955916565e-1]    # AU
 
+# Get Earth positions in J2000 (DE430)
+R1 = kernel[0,3].compute(t1) * km2au
+R2 = kernel[0,3].compute(t2) * km2au
+R3 = kernel[0,3].compute(t3) * km2au
 
 """
 INITIAL GUESSES
@@ -472,7 +483,7 @@ aPerihelion = argPerihelion(U, v)
 M = meanAnomaly(r, a, e, v)
 
 
-# Do percent differences with JPL values
+# Do percent differences with JPL values in J2000
 # NOTE omega = aPerihelion
 aJPL = 1.820221560664795
 eJPL = 0.3264825227417676
@@ -480,7 +491,6 @@ iJPL = 23.25678573253114
 lOmegaJPL = 164.85231665456
 omegaJPL = 154.3654325836887
 MJPL = 3.517493888576719e2
-
 
 # Percent difference calculator
 def perDiff(var1, var2):

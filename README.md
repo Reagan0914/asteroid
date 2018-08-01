@@ -41,3 +41,4 @@ orbital elements chart.
 ### Modification on 2018/08/01
 Modified gaussianODWithMagellanData.py to run in py36 environment.  
 Visualize the orbits with poliastro libraries.  
+Use DE430 to compute precise Earth positions.
