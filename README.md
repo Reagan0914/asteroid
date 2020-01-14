@@ -38,7 +38,7 @@ There is more (not at all good) error analysis code here too.
 Gauss' method of orbit determination based on Kepler's Second Law! Outputs a nice
 orbital elements chart.
 
-### Modification on 2018/08/01
+### Modified on 2018/08/01
 Modified gaussianODWithMagellanData.py to run in py36 environment.  
 Visualize the orbits with poliastro libraries.  
 Use DE430 to compute precise Earth positions.
